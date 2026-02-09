@@ -45,4 +45,26 @@ Para o correto funcionamento do deploy e do Favicon, o repositório deve estar o
 ```
 ## ⚙️ Como executar localmente
 
+Siga os passos abaixo para rodar o projeto na sua máquina:
+
+1. **Clone o repositório:**
+   ```bash
+   git clone [https://github.com/brunojsdev/dashboard-sistema-solar.git](https://github.com/brunojsdev/dashboard-sistema-solar.git)
+´´´
+
+2. **Aceda à pasta do projeto:**
+   ```bash
+   cd dashboard-sistema-solar
+´´´
+
+3. **Instale as dependências:**
+   ```bash
+   pip install -r requirements.txt
+´´´
+
+4. **Execute o aplicativo:**
+   ```bash
+   streamlit run app.py
+´´´
+
 
