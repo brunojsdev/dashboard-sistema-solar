@@ -1,11 +1,21 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import os
 
 # Configuração da Página
+# O arquivo 'fi-port.png' deve estar na raiz do seu repositório GitHub
+favicon_path = "fi-port.png"
+
+# Verificação simples para garantir que o app não quebre se a imagem sumir
+if os.path.exists(favicon_path):
+    page_icon = favicon_path
+else:
+    page_icon = "🪐"
+
 st.set_page_config(
     page_title="Painel Solar Analytics",
-    page_icon="🪐",
+    page_icon=page_icon,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -20,10 +30,14 @@ st.markdown("""
         color: #FAFAFA;
         font-family: 'Helvetica', sans-serif;
     }
-    /* Ajuste para deixar o radio button mais espaçado e legível */
     .stRadio > label {
         font-weight: bold;
         font-size: 1.1rem;
+    }
+    /* Estilização para o botão de link para parecer mais integrado */
+    .stLinkButton > a {
+        width: 100%;
+        text-align: center;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -45,31 +59,32 @@ def load_data():
 
 df = load_data()
 
-# --- FUNÇÃO AUXILIAR DE PLOTAGEM (PADRÃO PAN) ---
+# --- FUNÇÃO AUXILIAR DE PLOTAGEM ---
 def configurar_layout_padrao(fig):
-    """Aplica o modo 'Pan' como padrão e remove fundo."""
+    """Configura o modo Pan e estética dark."""
     fig.update_layout(
-        dragmode='pan',  # FORÇA O MODO PAN
+        dragmode='pan',
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color="#FAFAFA")
+        font=dict(color="#FAFAFA"),
+        margin=dict(l=20, r=20, t=40, b=20)
     )
     return fig
 
-# --- BARRA LATERAL (FIXA E SIMPLES) ---
-st.sidebar.header("Painel de Controle")
+# --- BARRA LATERAL ---
+st.sidebar.header("Filtros de Dados")
 
-# Opções fixas de filtragem (Radio Button ao invés de Multiselect)
+# Radio Buttons para clique direto
 filtro_visual = st.sidebar.radio(
-    "Categoria de Visualização:",
-    options=["Visão Geral (Todos)", "Terrestres (Rochosos)", "Gigantes Gasosos", "Gigantes Gelados"],
+    "Selecionar Categoria:",
+    options=["Todos os Planetas", "Rochosos (Terrestres)", "Gigantes Gasosos", "Gigantes Gelados"],
     index=0
 )
 
 # Lógica de Filtragem
-if filtro_visual == "Visão Geral (Todos)":
+if filtro_visual == "Todos os Planetas":
     df_filtrado = df
-elif filtro_visual == "Terrestres (Rochosos)":
+elif filtro_visual == "Rochosos (Terrestres)":
     df_filtrado = df[df["Tipo"] == "Terrestre"]
 elif filtro_visual == "Gigantes Gasosos":
     df_filtrado = df[df["Tipo"] == "Gigante Gasoso"]
@@ -77,16 +92,17 @@ elif filtro_visual == "Gigantes Gelados":
     df_filtrado = df[df["Tipo"] == "Gigante Gelado"]
 
 st.sidebar.markdown("---")
-st.sidebar.info("Utilize as abas no painel principal para alternar entre as métricas comparativas.")
+st.sidebar.markdown("**Links Externos:**")
+# Botão para o Portfólio do usuário
+st.sidebar.link_button("Acessar meu Portfólio 🚀", "https://brunojsdev.github.io/meu-portfolio/")
 
 # --- CONTEÚDO PRINCIPAL ---
 
 st.title("🪐 Painel Analítico do Sistema Solar")
-st.markdown("Análise quantitativa das características físicas e orbitais dos corpos celestes.")
+st.markdown("Dashboard técnico com dados físicos e orbitais consolidados.")
 
-# 1. Visualização Avançada: Comparativo 3D (Scatter Plot)
-st.subheader("🔭 Correlação: Tamanho, Gravidade e Temperatura")
-
+# 1. Correlação Gravidade x Temperatura
+st.subheader("🔭 Análise de Dispersão: Gravidade vs Temperatura")
 fig_bubble = px.scatter(
     df_filtrado,
     x="Gravidade (m/s²)",
@@ -99,91 +115,39 @@ fig_bubble = px.scatter(
     color_discrete_map={row['Nome']: row['Cor'] for index, row in df.iterrows()},
     template="plotly_dark"
 )
-
-# Ajuste fino das labels para não ficarem em cima das bolhas
 fig_bubble.update_traces(textposition='top center')
 fig_bubble = configurar_layout_padrao(fig_bubble)
-fig_bubble.update_layout(height=450, showlegend=False)
-
 st.plotly_chart(fig_bubble, use_container_width=True)
 
-
-# 2. Análise Comparativa (Abas)
-st.subheader("📊 Comparativo Técnico")
-tab1, tab2, tab3, tab4 = st.tabs(["Distância", "Rotação (Dia)", "Diâmetro", "Satélites Naturais (Luas)"])
+# 2. Abas Comparativas
+st.subheader("📊 Comparativo de Variáveis")
+tab1, tab2, tab3, tab4 = st.tabs(["Distância do Sol", "Duração do Dia", "Diâmetro", "Satélites (Luas)"])
 
 with tab1:
-    fig_dist = px.bar(
-        df_filtrado,
-        x="Nome",
-        y="Distância do Sol (10⁶ km)",
-        color="Distância do Sol (10⁶ km)",
-        color_continuous_scale="Magma",
-        text_auto='.1f',
-        title="Distância Média ao Sol (Milhões de km)",
-        template="plotly_dark"
-    )
-    fig_dist = configurar_layout_padrao(fig_dist)
-    st.plotly_chart(fig_dist, use_container_width=True)
+    fig1 = px.bar(df_filtrado, x="Nome", y="Distância do Sol (10⁶ km)", color="Distância do Sol (10⁶ km)", 
+                 color_continuous_scale="Viridis", text_auto='.1f', template="plotly_dark")
+    st.plotly_chart(configurar_layout_padrao(fig1), use_container_width=True)
 
 with tab2:
-    fig_day = px.bar(
-        df_filtrado,
-        x="Nome",
-        y="Duração do Dia (horas)",
-        color="Tipo",
-        text_auto='.1f',
-        title="Duração de um Dia (Horas de Rotação)",
-        template="plotly_dark"
-    )
-    fig_day = configurar_layout_padrao(fig_day)
-    st.plotly_chart(fig_day, use_container_width=True)
+    fig2 = px.bar(df_filtrado, x="Nome", y="Duração do Dia (horas)", color="Tipo", 
+                 text_auto='.1f', template="plotly_dark")
+    st.plotly_chart(configurar_layout_padrao(fig2), use_container_width=True)
 
 with tab3:
-    fig_dia = px.bar(
-        df_filtrado,
-        y="Nome",
-        x="Diâmetro (km)",
-        orientation='h',
-        color="Tipo",
-        text_auto=True,
-        title="Diâmetro Equatorial (km)",
-        template="plotly_dark"
-    )
-    fig_dia = configurar_layout_padrao(fig_dia)
-    st.plotly_chart(fig_dia, use_container_width=True)
+    fig3 = px.bar(df_filtrado, y="Nome", x="Diâmetro (km)", orientation='h', color="Tipo", 
+                 text_auto=True, template="plotly_dark")
+    st.plotly_chart(configurar_layout_padrao(fig3), use_container_width=True)
 
 with tab4:
-    # Novo gráfico solicitado: Luas
-    fig_luas = px.bar(
-        df_filtrado.sort_values(by="Luas", ascending=False), # Ordenado do maior para o menor
-        x="Nome",
-        y="Luas",
-        color="Luas",
-        color_continuous_scale="Viridis",
-        text_auto=True,
-        title="Quantidade de Satélites Naturais (Luas)",
-        template="plotly_dark"
-    )
-    fig_luas = configurar_layout_padrao(fig_luas)
-    fig_luas.update_layout(yaxis_title="Número de Luas")
-    st.plotly_chart(fig_luas, use_container_width=True)
-
+    fig4 = px.bar(df_filtrado.sort_values("Luas", ascending=False), x="Nome", y="Luas", 
+                 color="Luas", color_continuous_scale="Magma", text_auto=True, template="plotly_dark")
+    st.plotly_chart(configurar_layout_padrao(fig4), use_container_width=True)
 
 # 3. Tabela de Dados
 st.markdown("---")
-st.subheader("📋 Tabela de Dados Detalhada")
-
-df_display = df_filtrado.drop(columns=["Cor"])
-
+st.subheader("📋 Tabela de Dados Científica")
 st.dataframe(
-    df_display,
+    df_filtrado.drop(columns=["Cor"]),
     use_container_width=True,
-    column_config={
-        "Diâmetro (km)": st.column_config.NumberColumn(format="%d km"),
-        "Distância do Sol (10⁶ km)": st.column_config.NumberColumn(format="%.1f M km"),
-        "Gravidade (m/s²)": st.column_config.NumberColumn(format="%.2f m/s²"),
-        "Temperatura Média (°C)": st.column_config.NumberColumn(format="%d °C"),
-    },
     hide_index=True
 )
