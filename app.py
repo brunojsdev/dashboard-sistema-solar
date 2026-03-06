@@ -58,14 +58,15 @@ st.markdown("""
         height: 45px;
         transition: 0.2s;
         font-weight: 600;
-        padding: 0 5px;
+        padding: 0;
+        font-size: 0.85rem;
     }
     .stButton>button:hover {
         border-color: #ffdd00;
         color: #ffdd00;
     }
 
-    /* Padding para os Filtros e ajuste para alinhar em linha */
+    /* Padding para os Filtros */
     .stMultiSelect {
         padding-top: 10px;
     }
@@ -97,6 +98,8 @@ def get_data():
     return pd.DataFrame(data)
 
 df_original = get_data()
+# DataFrame apenas com os planetas para não quebrar os gráficos comparativos
+df_planetas = df_original[df_original['Tipo'] != 'Estrela']
 
 # --- HEADER ---
 st.markdown(f'<a href="https://brunojsdev.github.io/meu-portfolio/" class="portfolio-btn">Portfolio</a>', unsafe_allow_html=True)
@@ -104,16 +107,14 @@ st.markdown(f'<a href="https://brunojsdev.github.io/meu-portfolio/" class="portf
 st.title("SISTEMA SOLAR | DATA INSIGHTS")
 
 # --- NAVEGAÇÃO POR BOTÕES (TOP BAR) ---
-planetas_lista = df_original['Planeta'].tolist()
-# Cria colunas dinamicamente baseado na quantidade de corpos celestes + 1 (botão Geral)
-cols_nav = st.columns(len(planetas_lista) + 1)
+# Criamos a lista na ordem exata e forçamos 10 colunas iguais para manter espaçamento padronizado
+botoes_nav = ["SISTEMA COMPLETO", "SOL"] + df_planetas['Planeta'].tolist()
+cols_nav = st.columns(10)
 
-if cols_nav[0].button("SISTEMA COMPLETO"):
-    st.session_state.selecao = "Geral"
-
-for i, planeta in enumerate(planetas_lista):
-    if cols_nav[i+1].button(planeta.upper()):
-        st.session_state.selecao = planeta
+for i, btn_nome in enumerate(botoes_nav):
+    if cols_nav[i].button(btn_nome.upper()):
+        # Mapeia o botão SISTEMA COMPLETO para a string "Geral"
+        st.session_state.selecao = "Geral" if btn_nome == "SISTEMA COMPLETO" else btn_nome
 
 # Inicializar estado
 if 'selecao' not in st.session_state:
@@ -124,22 +125,21 @@ st.markdown("---")
 # --- LÓGICA DE EXIBIÇÃO ---
 if st.session_state.selecao == "Geral":
     
-    # Área de Filtros com largura ideal para enfileirar
-    col_f1, _, _ = st.columns([5, 2, 3]) 
+    # Área de Filtros mais justa: Coluna 1 ocupa 2.5 (espaço exato para 3 tags) e a vazia ocupa 7.5
+    col_f1, _ = st.columns([2.5, 7.5]) 
     with col_f1:
         filtro_tipo = st.multiselect(
             "Filtrar Exibição por Tipo:", 
-            options=df_original['Tipo'].unique(), 
-            default=df_original['Tipo'].unique()
+            options=df_planetas['Tipo'].unique(), 
+            default=df_planetas['Tipo'].unique()
         )
     
-    df = df_original[df_original['Tipo'].isin(filtro_tipo)]
+    df = df_planetas[df_planetas['Tipo'].isin(filtro_tipo)]
     st.write("")
 
-    # KPIs agrupados à esquerda para não ficarem demasiadamente espaçados
-    # A última coluna vazia empurra as outras para perto
-    c1, c2, c3, c4, _ = st.columns([1.2, 1.2, 1.2, 1.2, 4])
-    c1.metric("Corpos Celestes", len(df))
+    # KPIs: Espaço 1.8 para a Média de Gravidade garante que o texto não será cortado
+    c1, c2, c3, c4, _ = st.columns([1, 1.8, 1, 1, 2.2])
+    c1.metric("Planetas Ativos", len(df))
     c2.metric("Média de Gravidade", f"{df['Gravidade'].mean():.2f} m/s²")
     c3.metric("Satélites no Filtro", df['Luas'].sum())
     c4.metric("Escopo Visual", "Completo")
@@ -155,7 +155,7 @@ if st.session_state.selecao == "Geral":
             plot_bgcolor='rgba(0,0,0,0)', 
             font_color='#c9e4ff', 
             showlegend=False,
-            dragmode='pan' # Inicia com PAN
+            dragmode='pan'
         )
         st.plotly_chart(fig_diam, use_container_width=True)
 
@@ -164,20 +164,19 @@ if st.session_state.selecao == "Geral":
         fig_pie = px.pie(df, names='Tipo', hole=0.6, 
                          color='Tipo',
                          color_discrete_map={
-                             'Estrela': '#ffdd00',   # Amarelo Solar
-                             'Rochoso': '#ff9900',   # Laranja
+                             'Rochoso': '#ff9900',   
                              'Gasoso': '#b388ff',    # Roxo Claro
-                             'Gelo': '#150136'       # Azul Escuro/Roxo profundo
+                             'Gelo': '#150136'       
                          })
         fig_pie.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', 
             plot_bgcolor='rgba(0,0,0,0)', 
             font_color='#c9e4ff',
-            dragmode='pan' # Inicia com PAN
+            dragmode='pan'
         )
         st.plotly_chart(fig_pie, use_container_width=True)
 
-    st.subheader("Intensidade Gravitacional por Corpo Celeste")
+    st.subheader("Intensidade Gravitacional por Planeta")
     fig_grav = go.Figure(data=[go.Bar(
         x=df['Planeta'], 
         y=df['Gravidade'],
@@ -193,22 +192,85 @@ if st.session_state.selecao == "Geral":
         font_color='#c9e4ff',
         xaxis=dict(gridcolor='#150136'), 
         yaxis=dict(gridcolor='#150136'),
-        dragmode='pan' # Inicia com PAN
+        dragmode='pan'
     )
     st.plotly_chart(fig_grav, use_container_width=True)
 
+elif st.session_state.selecao == "Sol":
+    # --- VISÃO EXCLUSIVA DO SOL ---
+    p_data = df_original[df_original['Planeta'] == 'Sol'].iloc[0]
+    
+    st.header(f"Exploração: NOSSA ESTRELA ({p_data['Planeta'].upper()})")
+    
+    st.markdown(f"""
+        <div class="planeta-desc">
+            O Sol é a estrela central do Sistema Solar. Todos os outros corpos celestes orbitam ao seu redor. 
+            Sua gravidade gigantesca é o que mantém o sistema unido, sendo cerca de 28 vezes mais forte que a da Terra.
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Métricas adaptadas
+    m1, m2, m3, m4, _ = st.columns([1, 1.2, 1, 1.2, 2.6])
+    m1.metric("Tipo", "Estrela (Anã Amarela)")
+    m2.metric("Diâmetro", f"{p_data['Diametro']:,} km".replace(',','.'))
+    m3.metric("Temp. Superfície", f"{p_data['Temperatura_Media']}°C")
+    m4.metric("Gravidade Esmagadora", f"{p_data['Gravidade']} m/s²")
+
+    st.write("")
+    g1, g2 = st.columns(2)
+
+    with g1:
+        st.subheader("Calor da Superfície")
+        fig_temp = go.Figure(go.Indicator(
+            mode = "gauge+number",
+            value = p_data['Temperatura_Media'],
+            number = {'suffix': "°C", 'font': {'color': '#ff9900'}},
+            domain = {'x': [0, 1], 'y': [0, 1]},
+            gauge = {
+                'axis': {'range': [None, 6000], 'tickcolor': "#c9e4ff"},
+                'bar': {'color': "#ff3300"},
+                'bgcolor': "#090024",
+                'borderwidth': 2,
+                'bordercolor': "#ff9900",
+                'steps': [
+                    {'range': [0, 2000], 'color': '#ffdd00'},
+                    {'range': [2000, 4500], 'color': '#ff9900'}],
+            }
+        ))
+        fig_temp.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "#c9e4ff"}, height=350, dragmode='pan')
+        st.plotly_chart(fig_temp, use_container_width=True)
+
+    with g2:
+        st.subheader("Potencial Gravitacional (Extremo)")
+        fig_gauge = go.Figure(go.Indicator(
+            mode = "gauge+number",
+            value = p_data['Gravidade'],
+            domain = {'x': [0, 1], 'y': [0, 1]},
+            gauge = {
+                'axis': {'range': [None, 300], 'tickcolor': "#c9e4ff"},
+                'bar': {'color': "#ffdd00"},
+                'bgcolor': "#090024",
+                'borderwidth': 2,
+                'bordercolor': "#5752ff",
+                'steps': [
+                    {'range': [0, 100], 'color': '#150136'},
+                    {'range': [100, 250], 'color': '#090024'}],
+            }
+        ))
+        fig_gauge.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "#c9e4ff"}, height=350, dragmode='pan')
+        st.plotly_chart(fig_gauge, use_container_width=True)
+
 else:
-    # --- VISÃO DETALHADA ---
+    # --- VISÃO DETALHADA DOS PLANETAS ---
     target = st.session_state.selecao
-    p_data = df_original[df_original['Planeta'] == target].iloc[0]
+    p_data = df_planetas[df_planetas['Planeta'] == target].iloc[0]
     
     st.header(f"Exploração: {target.upper()}")
     
     comparativo = "superior" if p_data['Gravidade'] > 9.8 else ("igual" if p_data['Gravidade'] == 9.8 else "inferior")
-    # Trocado "O planeta" por "O corpo celeste" para englobar o Sol corretamente
     st.markdown(f"""
         <div class="planeta-desc">
-            O corpo celeste {target} é classificado como {p_data['Tipo']}. 
+            O planeta {target} é classificado como {p_data['Tipo']}. 
             Sua gravidade é {comparativo} à da Terra.
         </div>
     """, unsafe_allow_html=True)
@@ -224,13 +286,12 @@ else:
 
     with g1:
         st.subheader("Escala de Diâmetro (Comparativa)")
-        # Compara selecionado com Terra e Sol 
-        comp_df = df_original[df_original['Planeta'].isin(['Terra', 'Sol', target])].drop_duplicates()
+        # Retorno à comparação entre o Alvo, Terra e Júpiter
+        comp_df = df_planetas[df_planetas['Planeta'].isin(['Terra', 'Júpiter', target])].drop_duplicates()
         
-        # Mapeamento dinâmico para garantir destaque no alvo
-        cores_mapa = {'Terra': '#5752ff', 'Sol': '#ffdd00'}
+        cores_mapa = {'Terra': '#5752ff', 'Júpiter': '#150136'}
         if target not in cores_mapa:
-            cores_mapa[target] = '#b388ff' # Roxo claro para o alvo selecionado (se não for sol/terra)
+            cores_mapa[target] = '#b388ff' if p_data['Tipo'] == 'Gasoso' else '#ffdd00' 
             
         fig_comp = px.bar(comp_df, x='Planeta', y='Diametro', color='Planeta',
                          color_discrete_map=cores_mapa)
@@ -238,37 +299,35 @@ else:
             paper_bgcolor='rgba(0,0,0,0)', 
             plot_bgcolor='rgba(0,0,0,0)', 
             font_color='#c9e4ff',
-            height=350,       # Tamanho idêntico ao velocímetro
-            dragmode='pan'    # Inicia com PAN
+            height=350,       
+            dragmode='pan'
         )
         st.plotly_chart(fig_comp, use_container_width=True)
 
     with g2:
         st.subheader("Potencial Gravitacional")
         
-        # Ajuste dinâmico do range do velocímetro para comportar a gravidade do Sol (274)
-        max_gauge = max(30, int(p_data['Gravidade'] * 1.2))
-        
+        # Limite fixo em 30 para os planetas já é suficiente, Júpiter tem 24.79
         fig_gauge = go.Figure(go.Indicator(
             mode = "gauge+number",
             value = p_data['Gravidade'],
             domain = {'x': [0, 1], 'y': [0, 1]},
             gauge = {
-                'axis': {'range': [None, max_gauge], 'tickcolor': "#c9e4ff"},
+                'axis': {'range': [None, 30], 'tickcolor': "#c9e4ff"},
                 'bar': {'color': "#ffdd00"},
                 'bgcolor': "#090024",
                 'borderwidth': 2,
                 'bordercolor': "#5752ff",
                 'steps': [
-                    {'range': [0, max_gauge*0.33], 'color': '#150136'},
-                    {'range': [max_gauge*0.33, max_gauge*0.83], 'color': '#090024'}],
+                    {'range': [0, 10], 'color': '#150136'},
+                    {'range': [10, 25], 'color': '#090024'}],
             }
         ))
         fig_gauge.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', 
             font={'color': "#c9e4ff"}, 
-            height=350,       # Tamanho idêntico ao gráfico de barras
-            dragmode='pan'    # Inicia com PAN
+            height=350,       
+            dragmode='pan'
         )
         st.plotly_chart(fig_gauge, use_container_width=True)
 
