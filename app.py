@@ -11,35 +11,91 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILO CSS ---
+# --- ESTILO CSS AVANÇADO ---
 st.markdown("""
 <style>
-    .stApp { background-color: #040014; color: #c9e4ff; }
+    /* Reset e Fundo */
+    .stApp {
+        background-color: #040014;
+        color: #c9e4ff;
+    }
     
-    /* FIX NAVEGAÇÃO: Impede sobreposição e garante leitura */
+    /* Botão Portfolio */
+    .portfolio-btn {
+        position: absolute;
+        top: -50px;
+        left: 0;
+        color: #5752ff;
+        text-decoration: none !important;
+        font-weight: 600;
+        border: 1px solid #5752ff;
+        padding: 5px 20px;
+        border-radius: 4px;
+        transition: 0.3s;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+    }
+    .portfolio-btn:hover {
+        background-color: #5752ff;
+        color: white !important;
+        box-shadow: 0px 0px 15px rgba(87, 82, 255, 0.4);
+    }
+
+    h1, h2, h3 {
+        color: #ffdd00 !important;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* FIX: NAVEGAÇÃO HORIZONTAL SEM SOBREPOSIÇÃO */
     div[data-testid="stHorizontalBlock"]:has(button) {
-        gap: 8px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        overflow-x: auto;
     }
+    
     div[data-testid="stColumn"]:has(button) {
+        width: auto !important;
         min-width: fit-content !important;
-        flex: unset !important;
+        flex: 0 0 auto !important;
     }
+
     .stButton > button {
         background-color: #090024;
         color: #c9e4ff;
         border: 1px solid #150136;
-        padding: 4px 12px;
+        border-radius: 4px;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        width: auto !important;
         white-space: nowrap;
     }
-    .stButton > button:hover { border-color: #ffdd00; color: #ffdd00; }
 
-    /* FILTROS: Garante os 3 em uma linha */
+    .stButton > button:hover {
+        border-color: #ffdd00;
+        color: #ffdd00;
+    }
+
+    /* AJUSTE DO MULTISELECT */
     .stMultiSelect div[data-baseweb="select"] {
-        min-width: 450px !important;
+        min-width: 400px !important;
     }
     
-    h1, h2, h3 { color: #ffdd00 !important; }
-    [data-testid="stMetricValue"] { font-size: 1.8rem !important; }
+    .planeta-desc {
+        font-size: 1.2rem;
+        color: #c9e4ff;
+        margin-bottom: 25px;
+        border-left: 3px solid #5752ff;
+        padding-left: 15px;
+        font-style: italic;
+    }
+    
+    [data-testid="stMetricValue"] {
+        font-size: 1.8rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,102 +113,138 @@ def get_data():
     }
     return pd.DataFrame(data)
 
-df_all = get_data()
-df_planets = df_all[df_all['Tipo'] != 'Estrela']
+df_original = get_data()
+df_planetas_apenas = df_original[df_original['Tipo'] != 'Estrela']
 
-# --- HEADER E NAVEGAÇÃO ---
+# --- HEADER ---
+st.markdown(f'<a href="https://brunojsdev.github.io/meu-portfolio/" class="portfolio-btn">Portfolio</a>', unsafe_allow_html=True)
 st.title("SISTEMA SOLAR | DATA INSIGHTS")
 
-botoes = ["SISTEMA COMPLETO", "SOL", "MERCÚRIO", "VÊNUS", "TERRA", "MARTE", "JÚPITER", "SATURNO", "URANO", "NETUNO"]
-if 'sel' not in st.session_state: st.session_state.sel = "Geral"
+# --- NAVEGAÇÃO ---
+botoes_nomes = ["SISTEMA COMPLETO", "SOL", "MERCÚRIO", "VÊNUS", "TERRA", "MARTE", "JÚPITER", "SATURNO", "URANO", "NETUNO"]
 
-nav_cols = st.columns(len(botoes))
-for i, nome in enumerate(botoes):
-    with nav_cols[i]:
-        if st.button(nome): st.session_state.sel = "Geral" if nome == "SISTEMA COMPLETO" else nome.title()
+if 'selecao' not in st.session_state:
+    st.session_state.selecao = "Geral"
+
+cols = st.columns(len(botoes_nomes))
+for idx, nome in enumerate(botoes_nomes):
+    with cols[idx]:
+        if st.button(nome, key=f"btn_{nome}"):
+            st.session_state.selecao = "Geral" if nome == "SISTEMA COMPLETO" else nome.title()
 
 st.markdown("---")
+
 plotly_config = {'displayModeBar': False}
 
-# --- TELAS ---
-if st.session_state.sel == "Geral":
-    c_f, _ = st.columns([4.5, 5.5])
-    with c_f:
-        f_tipo = st.multiselect("Filtrar por Tipo:", options=df_planets['Tipo'].unique(), default=list(df_planets['Tipo'].unique()))
+# --- LÓGICA DE EXIBIÇÃO ---
+if st.session_state.selecao == "Geral":
+    col_f1, _ = st.columns([4, 6]) 
+    with col_f1:
+        tipos_disponiveis = df_planetas_apenas['Tipo'].unique()
+        filtro_tipo = st.multiselect(
+            "Filtrar por Tipo:", 
+            options=tipos_disponiveis, 
+            default=list(tipos_disponiveis)
+        )
     
-    df = df_planets[df_planets['Tipo'].isin(f_tipo)]
-    
-    k1, k2, k3, k4, _ = st.columns([1, 2, 1, 1, 2])
-    k1.metric("Corpos", len(df))
-    k2.metric("Média Gravidade", f"{df['Gravidade'].mean():.2f} m/s²")
-    k3.metric("Luas", df['Luas'].sum())
-    k4.metric("Status", "Online")
+    df_filtered = df_planetas_apenas[df_planetas_apenas['Tipo'].isin(filtro_tipo)]
+    st.write("")
 
-    l, r = st.columns(2)
-    with l:
-        st.subheader("Diâmetro (km)")
-        fig = px.bar(df.sort_values('Diametro'), x='Diametro', y='Planeta', orientation='h', color='Diametro', color_continuous_scale='Viridis')
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', height=350)
-        st.plotly_chart(fig, use_container_width=True, config=plotly_config)
-    with r:
-        st.subheader("Tipologia")
-        fig = px.pie(df, names='Tipo', hole=0.5)
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', height=350)
-        st.plotly_chart(fig, use_container_width=True, config=plotly_config)
+    c1, c2, c3, c4, _ = st.columns([1.2, 2.2, 1.5, 1.2, 2])
+    c1.metric("Planetas", len(df_filtered))
+    c2.metric("Média de Gravidade", f"{df_filtered['Gravidade'].mean():.2f} m/s²")
+    c3.metric("Total de Luas", df_filtered['Luas'].sum())
+    c4.metric("Escopo", "Completo")
 
-elif st.session_state.sel == "Sol":
-    data = df_all[df_all['Planeta'] == 'Sol'].iloc[0]
-    st.header("ESTRELA: SOL")
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        st.subheader("Diâmetro por Planeta (km)")
+        fig_diam = px.bar(df_filtered.sort_values('Diametro'), x='Diametro', y='Planeta', orientation='h',
+                         color='Diametro', color_continuous_scale=['#150136', '#5752ff', '#ffdd00'])
+        fig_diam.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', showlegend=False, dragmode='pan')
+        st.plotly_chart(fig_diam, use_container_width=True, config=plotly_config)
+
+    with col_right:
+        st.subheader("Distribuição por Composição")
+        fig_pie = px.pie(df_filtered, names='Tipo', hole=0.6, 
+                         color='Tipo',
+                         color_discrete_map={'Rochoso': '#ff9900', 'Gasoso': '#b388ff', 'Gelo': '#150136'})
+        fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', dragmode='pan')
+        st.plotly_chart(fig_pie, use_container_width=True, config=plotly_config)
+
+    st.subheader("Intensidade Gravitacional")
+    fig_grav = go.Figure(data=[go.Bar(
+        x=df_filtered['Planeta'], y=df_filtered['Gravidade'],
+        marker=dict(color=df_filtered['Gravidade'], colorscale=['#150136', '#5752ff', '#ffdd00'])
+    )])
+    fig_grav.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', dragmode='pan')
+    st.plotly_chart(fig_grav, use_container_width=True, config=plotly_config)
+
+elif st.session_state.selecao == "Sol":
+    p_data = df_original[df_original['Planeta'] == 'Sol'].iloc[0]
+    st.header(f"Exploração: {p_data['Planeta'].upper()}")
     
-    m1, m2, m3, m4, _ = st.columns([1, 1, 1, 1, 2])
-    m1.metric("Tipo", "G2V")
-    m2.metric("Calor", "5.500°C")
-    m3.metric("Massa", "99.8%")
-    m4.metric("Gravidade", "274 m/s²")
+    st.markdown(f'<div class="planeta-desc">O Sol contém 99.8% da massa do Sistema Solar. É uma estrela de tipo espectral G2V.</div>', unsafe_allow_html=True)
+    
+    m1, m2, m3, m4, _ = st.columns([1, 1.2, 1, 1.2, 2.6])
+    m1.metric("Tipo", "Estrela")
+    m2.metric("Diâmetro", f"{p_data['Diametro']:,}".replace(',','.'))
+    m3.metric("Temperatura", f"{p_data['Temperatura_Media']}°C")
+    m4.metric("Gravidade", f"{p_data['Gravidade']} m/s²")
 
     g1, g2 = st.columns(2)
     with g1:
         st.subheader("Temperatura da Superfície")
-        fig = go.Figure(go.Indicator(mode="gauge+number", value=data['Temperatura_Media'], number={'suffix':"°C"},
-                                     gauge={'axis':{'range':[None, 6000]}, 'bar':{'color':"#ff3300"}}))
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=380, margin=dict(t=0, b=0))
-        st.plotly_chart(fig, use_container_width=True, config=plotly_config)
+        fig_t = go.Figure(go.Indicator(mode="gauge+number", value=p_data['Temperatura_Media'], number={'suffix':"°C"},
+                                     gauge={'axis':{'range':[None, 6000]}, 'bar':{'color':"#ff3300"}, 'bgcolor':"#090024"}))
+        fig_t.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350)
+        st.plotly_chart(fig_t, use_container_width=True, config=plotly_config)
     with g2:
-        # TÍTULO INTEGRADO NO PLOTLY PARA ALINHAMENTO ABSOLUTO
-        fig = go.Figure(go.Indicator(mode="gauge+number", value=data['Gravidade'],
+        # Título específico alinhado ao gráfico
+        st.subheader("Potencial Gravitacional")
+        fig_g = go.Figure(go.Indicator(mode="gauge+number", value=p_data['Gravidade'],
                                      gauge={'axis':{'range':[None, 300]}, 'bar':{'color':"#ffdd00"}}))
-        fig.update_layout(
-            title={'text': "Potencial Gravitacional", 'y':0.95, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top', 'font': {'size': 20, 'color': '#ffdd00'}},
-            paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=380, margin=dict(t=60, b=0)
-        )
-        st.plotly_chart(fig, use_container_width=True, config=plotly_config)
+        fig_g.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350, margin=dict(t=50, b=10, l=30, r=30))
+        st.plotly_chart(fig_g, use_container_width=True, config=plotly_config)
 
 else:
-    target = st.session_state.sel
-    data = df_planets[df_planets['Planeta'] == target].iloc[0]
-    st.header(f"PLANETA: {target.upper()}")
-    
-    m1, m2, m3, m4, _ = st.columns([1, 1, 1, 1, 2])
-    m1.metric("Distância", f"{data['Distancia']}M km")
-    m2.metric("Temp.", f"{data['Temperatura_Media']}°C")
-    m3.metric("Luas", data['Luas'])
-    m4.metric("Gravidade", f"{data['Gravidade']} m/s²")
+    target = st.session_state.selecao
+    try:
+        p_data = df_planetas_apenas[df_planetas_apenas['Planeta'] == target].iloc[0]
+        st.header(f"Exploração: {target.upper()}")
+        
+        comparativo = "superior" if p_data['Gravidade'] > 9.8 else "inferior"
+        st.markdown(f'<div class="planeta-desc">Planeta {p_data["Tipo"]} com gravidade {comparativo} à da Terra.</div>', unsafe_allow_html=True)
+        
+        m1, m2, m3, m4, _ = st.columns([1, 1, 1, 1, 3])
+        m1.metric("Distância Sol", f"{p_data['Distancia']}M km")
+        m2.metric("Temp. Média", f"{p_data['Temperatura_Media']}°C")
+        m3.metric("Luas", p_data['Luas'])
+        m4.metric("Gravidade", f"{p_data['Gravidade']} m/s²")
 
-    g1, g2 = st.columns(2)
-    with g1:
-        st.subheader("Comparativo de Diâmetro")
-        c_df = df_planets[df_planets['Planeta'].isin(['Terra', 'Júpiter', target])].drop_duplicates()
-        fig = px.bar(c_df, x='Planeta', y='Diametro', color='Planeta')
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', height=380)
-        st.plotly_chart(fig, use_container_width=True, config=plotly_config)
-    with g2:
-        # TÍTULO INTEGRADO NO PLOTLY PARA ALINHAMENTO ABSOLUTO
-        fig = go.Figure(go.Indicator(mode="gauge+number", value=data['Gravidade'],
-                                     gauge={'axis':{'range':[None, 30]}, 'bar':{'color':"#ffdd00"}}))
-        fig.update_layout(
-            title={'text': "Potencial Gravitacional", 'y':0.95, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top', 'font': {'size': 20, 'color': '#ffdd00'}},
-            paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=380, margin=dict(t=60, b=0)
-        )
-        st.plotly_chart(fig, use_container_width=True, config=plotly_config)
+        g1, g2 = st.columns(2)
+        with g1:
+            st.subheader("Diâmetro Comparativo (Terra/Júpiter)")
+            comp_df = df_planetas_apenas[df_planetas_apenas['Planeta'].isin(['Terra', 'Júpiter', target])].drop_duplicates()
+            fig_comp = px.bar(comp_df, x='Planeta', y='Diametro', color='Planeta',
+                             color_discrete_map={'Terra': '#5752ff', 'Júpiter': '#150136', target: '#ffdd00'})
+            fig_comp.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', height=350, dragmode='pan')
+            st.plotly_chart(fig_comp, use_container_width=True, config=plotly_config)
+        with g2:
+            # AJUSTE ESPECÍFICO DE ALINHAMENTO DO TÍTULO "Potencial Gravitacional"
+            st.subheader("Potencial Gravitacional")
+            fig_gauge = go.Figure(go.Indicator(mode="gauge+number", value=p_data['Gravidade'],
+                                             gauge={'axis':{'range':[None, 30]}, 'bar':{'color':"#ffdd00"}}))
+            fig_gauge.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)', 
+                font={'color':"#c9e4ff"}, 
+                height=350,
+                margin=dict(t=50, b=10, l=30, r=30) # Adicionado margem para alinhar o conteúdo ao subheader
+            )
+            st.plotly_chart(fig_gauge, use_container_width=True, config=plotly_config)
+    except IndexError:
+        st.error("Erro ao carregar dados. Regresse ao Sistema Completo.")
 
-st.caption("BrunoJS Dev | Data Insights Solar")
+st.markdown("---")
+st.caption("Business Intelligence | BrunoJS Dev | Dados Astronômicos Referenciais")
