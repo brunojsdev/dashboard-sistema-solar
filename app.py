@@ -1,153 +1,148 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import os
+import plotly.graph_objects as go
 
-# Configuração da Página
-# O arquivo 'fi-port.png' deve estar na raiz do seu repositório GitHub
-favicon_path = "fi-port.png"
-
-# Verificação simples para garantir que o app não quebre se a imagem sumir
-if os.path.exists(favicon_path):
-    page_icon = favicon_path
-else:
-    page_icon = "🪐"
-
+# --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
-    page_title="Painel Solar Analytics",
-    page_icon=page_icon,
+    page_title="Sistema Solar | Deep Space UI",
+    page_icon="🌌",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- ESTILIZAÇÃO CSS ---
+# --- INJEÇÃO DE CSS CUSTOMIZADO ---
+# Adicionei estilos específicos para o link de retorno e botões
 st.markdown("""
-    <style>
-    .main {
-        background-color: #0E1117;
+<style>
+    /* Estilização Geral */
+    .stApp {
+        background-color: #040014;
+        color: #c9e4ff;
     }
-    h1, h2, h3 {
-        color: #FAFAFA;
-        font-family: 'Helvetica', sans-serif;
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #090024;
+        border-right: 1px solid #5752ff;
     }
-    .stRadio > label {
+    
+    /* Link de Retorno (Botão Voltar) */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        color: #5752ff;
         font-weight: bold;
-        font-size: 1.1rem;
+        padding: 8px 16px;
+        border: 1px solid #5752ff;
+        border-radius: 30px;
+        transition: 0.3s;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
     }
-    /* Estilização para o botão de link para parecer mais integrado */
-    .stLinkButton > a {
-        width: 100%;
-        text-align: center;
+    .back-link:hover {
+        background-color: #5752ff;
+        color: white;
+        box-shadow: 0px 0px 15px rgba(87, 82, 255, 0.5);
     }
-    </style>
-    """, unsafe_allow_html=True)
 
-# --- CAMADA DE DADOS ---
+    /* Títulos Neon */
+    h1, h2, h3 {
+        color: #ffdd00 !important;
+        text-shadow: 0px 0px 15px rgba(255, 221, 0, 0.3);
+        font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* Métricas */
+    [data-testid="stMetricValue"] {
+        color: #ffdd00 !important;
+        text-shadow: 0px 0px 10px rgba(255, 221, 0, 0.4);
+    }
+    
+    /* Botões nativos do Streamlit */
+    .stButton>button {
+        background-color: #150136;
+        color: #ffdd00;
+        border: 1px solid #5752ff;
+        border-radius: 20px;
+        width: 100%;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- DADOS ---
 @st.cache_data
 def load_data():
-    data = [
-        {"Nome": "Mercúrio", "Tipo": "Terrestre", "Diâmetro (km)": 4879, "Distância do Sol (10⁶ km)": 57.9, "Gravidade (m/s²)": 3.7, "Duração do Dia (horas)": 4222.6, "Luas": 0, "Temperatura Média (°C)": 167, "Cor": "#A5A5A5"},
-        {"Nome": "Vênus", "Tipo": "Terrestre", "Diâmetro (km)": 12104, "Distância do Sol (10⁶ km)": 108.2, "Gravidade (m/s²)": 8.87, "Duração do Dia (horas)": 2802.0, "Luas": 0, "Temperatura Média (°C)": 464, "Cor": "#E3BB76"},
-        {"Nome": "Terra", "Tipo": "Terrestre", "Diâmetro (km)": 12742, "Distância do Sol (10⁶ km)": 149.6, "Gravidade (m/s²)": 9.8, "Duração do Dia (horas)": 24.0, "Luas": 1, "Temperatura Média (°C)": 15, "Cor": "#2B32B2"},
-        {"Nome": "Marte", "Tipo": "Terrestre", "Diâmetro (km)": 6779, "Distância do Sol (10⁶ km)": 227.9, "Gravidade (m/s²)": 3.71, "Duração do Dia (horas)": 24.7, "Luas": 2, "Temperatura Média (°C)": -65, "Cor": "#D14A28"},
-        {"Nome": "Júpiter", "Tipo": "Gigante Gasoso", "Diâmetro (km)": 139820, "Distância do Sol (10⁶ km)": 778.6, "Gravidade (m/s²)": 24.79, "Duração do Dia (horas)": 9.9, "Luas": 79, "Temperatura Média (°C)": -110, "Cor": "#BCAFB2"},
-        {"Nome": "Saturno", "Tipo": "Gigante Gasoso", "Diâmetro (km)": 116460, "Distância do Sol (10⁶ km)": 1433.5, "Gravidade (m/s²)": 10.44, "Duração do Dia (horas)": 10.7, "Luas": 82, "Temperatura Média (°C)": -140, "Cor": "#C5AB6E"},
-        {"Nome": "Urano", "Tipo": "Gigante Gelado", "Diâmetro (km)": 50724, "Distância do Sol (10⁶ km)": 2872.5, "Gravidade (m/s²)": 8.69, "Duração do Dia (horas)": 17.2, "Luas": 27, "Temperatura Média (°C)": -195, "Cor": "#ADD8E6"},
-        {"Nome": "Netuno", "Tipo": "Gigante Gelado", "Diâmetro (km)": 49244, "Distância do Sol (10⁶ km)": 4495.1, "Gravidade (m/s²)": 11.15, "Duração do Dia (horas)": 16.1, "Luas": 14, "Temperatura Média (°C)": -200, "Cor": "#5B5DDF"}
-    ]
+    data = {
+        'Planeta': ['Mercúrio', 'Vênus', 'Terra', 'Marte', 'Júpiter', 'Saturno', 'Urano', 'Netuno'],
+        'Tipo': ['Rochoso', 'Rochoso', 'Rochoso', 'Rochoso', 'Gasoso', 'Gasoso', 'Gelo', 'Gelo'],
+        'Distancia': [57.9, 108.2, 149.6, 228.0, 778.5, 1432.0, 2867.0, 4515.0],
+        'Gravidade': [3.7, 8.87, 9.8, 3.71, 24.79, 10.44, 8.69, 11.15],
+        'Diametro': [4879, 12104, 12742, 6779, 139820, 116460, 50724, 49244],
+        'Luas': [0, 0, 1, 2, 95, 146, 27, 14]
+    }
     return pd.DataFrame(data)
 
 df = load_data()
 
-# --- FUNÇÃO AUXILIAR DE PLOTAGEM ---
-def configurar_layout_padrao(fig):
-    """Configura o modo Pan e estética dark."""
-    fig.update_layout(
-        dragmode='pan',
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color="#FAFAFA"),
-        margin=dict(l=20, r=20, t=40, b=20)
-    )
-    return fig
-
-# --- BARRA LATERAL ---
-st.sidebar.header("Filtros de Dados")
-
-# Radio Buttons para clique direto
-filtro_visual = st.sidebar.radio(
-    "Selecionar Categoria:",
-    options=["Todos os Planetas", "Rochosos (Terrestres)", "Gigantes Gasosos", "Gigantes Gelados"],
-    index=0
-)
-
-# Lógica de Filtragem
-if filtro_visual == "Todos os Planetas":
-    df_filtrado = df
-elif filtro_visual == "Rochosos (Terrestres)":
-    df_filtrado = df[df["Tipo"] == "Terrestre"]
-elif filtro_visual == "Gigantes Gasosos":
-    df_filtrado = df[df["Tipo"] == "Gigante Gasoso"]
-elif filtro_visual == "Gigantes Gelados":
-    df_filtrado = df[df["Tipo"] == "Gigante Gelado"]
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("**Links Externos:**")
-# Botão para o Portfólio do usuário
-st.sidebar.link_button("Acessar meu Portfólio 🚀", "https://brunojsdev.github.io/meu-portfolio/")
+# --- SIDEBAR (Terminal) ---
+with st.sidebar:
+    # BOTÃO DE VOLTAR AO PORTFÓLIO
+    st.markdown(f"""
+        <a href="https://brunojsdev.github.io/meu-portfolio/" target="_self" class="back-link">
+            ← Voltar ao Portfólio
+        </a>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<h2 style='text-align: center;'>🛰️ Terminal</h2>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    selecao = st.selectbox("Escolha o alvo:", ["Sistema Solar"] + list(df['Planeta']))
+    
+    st.markdown("---")
+    st.info("Status da Missão: Ativa")
+    st.caption("BrunoJS Dev | Exploration Unit")
 
 # --- CONTEÚDO PRINCIPAL ---
+if selecao == "Sistema Solar":
+    st.markdown("<h1>🌌 Sistema Solar: Visão Telemétrica</h1>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Corpos Escaneados", "8 Planetas")
+    col2.metric("Total de Luas", f"{df['Luas'].sum()}")
+    col3.metric("Estrela Host", "Sol (G2V)")
 
-st.title("🪐 Painel Analítico do Sistema Solar")
-st.markdown("Dashboard técnico com dados físicos e orbitais consolidados.")
+    st.write("")
+    
+    tab1, tab2 = st.tabs(["🚀 Comparativo de Escala", "📈 Gravidade Relativa"])
+    
+    with tab1:
+        fig1 = px.scatter(df, x="Distancia", y="Diametro", size="Diametro", color="Tipo",
+                         hover_name="Planeta", size_max=60,
+                         color_discrete_map={'Rochoso': '#ffaa00', 'Gasoso': '#5752ff', 'Gelo': '#c9e4ff'})
+        fig1.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', 
+                          font_color='#c9e4ff', xaxis=dict(gridcolor='#150136'), yaxis=dict(gridcolor='#150136'))
+        st.plotly_chart(fig1, use_container_width=True)
 
-# 1. Correlação Gravidade x Temperatura
-st.subheader("🔭 Análise de Dispersão: Gravidade vs Temperatura")
-fig_bubble = px.scatter(
-    df_filtrado,
-    x="Gravidade (m/s²)",
-    y="Temperatura Média (°C)",
-    size="Diâmetro (km)",
-    color="Nome",
-    hover_name="Nome",
-    text="Nome",
-    size_max=60,
-    color_discrete_map={row['Nome']: row['Cor'] for index, row in df.iterrows()},
-    template="plotly_dark"
-)
-fig_bubble.update_traces(textposition='top center')
-fig_bubble = configurar_layout_padrao(fig_bubble)
-st.plotly_chart(fig_bubble, use_container_width=True)
+    with tab2:
+        fig2 = px.bar(df, x="Planeta", y="Gravidade", color="Gravidade",
+                     color_continuous_scale=['#150136', '#5752ff', '#ffdd00'])
+        fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff')
+        st.plotly_chart(fig2, use_container_width=True)
 
-# 2. Abas Comparativas
-st.subheader("📊 Comparativo de Variáveis")
-tab1, tab2, tab3, tab4 = st.tabs(["Distância do Sol", "Duração do Dia", "Diâmetro", "Satélites (Luas)"])
-
-with tab1:
-    fig1 = px.bar(df_filtrado, x="Nome", y="Distância do Sol (10⁶ km)", color="Distância do Sol (10⁶ km)", 
-                 color_continuous_scale="Viridis", text_auto='.1f', template="plotly_dark")
-    st.plotly_chart(configurar_layout_padrao(fig1), use_container_width=True)
-
-with tab2:
-    fig2 = px.bar(df_filtrado, x="Nome", y="Duração do Dia (horas)", color="Tipo", 
-                 text_auto='.1f', template="plotly_dark")
-    st.plotly_chart(configurar_layout_padrao(fig2), use_container_width=True)
-
-with tab3:
-    fig3 = px.bar(df_filtrado, y="Nome", x="Diâmetro (km)", orientation='h', color="Tipo", 
-                 text_auto=True, template="plotly_dark")
-    st.plotly_chart(configurar_layout_padrao(fig3), use_container_width=True)
-
-with tab4:
-    fig4 = px.bar(df_filtrado.sort_values("Luas", ascending=False), x="Nome", y="Luas", 
-                 color="Luas", color_continuous_scale="Magma", text_auto=True, template="plotly_dark")
-    st.plotly_chart(configurar_layout_padrao(fig4), use_container_width=True)
-
-# 3. Tabela de Dados
-st.markdown("---")
-st.subheader("📋 Tabela de Dados Científica")
-st.dataframe(
-    df_filtrado.drop(columns=["Cor"]),
-    use_container_width=True,
-    hide_index=True
-)
+else:
+    p = df[df['Planeta'] == selecao].iloc[0]
+    st.markdown(f"<h1>🪐 Planeta: {selecao}</h1>", unsafe_allow_html=True)
+    
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Tipo", p['Tipo'])
+    c2.metric("Diâmetro", f"{p['Diametro']:,} km")
+    c3.metric("Gravidade", f"{p['Gravidade']} m/s²")
+    
+    st.markdown(f"### Análise de {selecao}")
+    st.write(f"Os dados telemétricos confirmam que **{selecao}** possui uma composição do tipo **{p['Tipo']}** e orbita a uma distância média de **{p['Distancia']} milhões de km** do Sol.")
+    
+    if st.button("Simular Pouso"):
+        st.toast(f"Iniciando manobra de inserção orbital em {selecao}...")
+        st.balloons()
