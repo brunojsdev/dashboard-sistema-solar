@@ -232,16 +232,10 @@ else:
             fig_comp.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', height=350, dragmode='pan')
             st.plotly_chart(fig_comp, use_container_width=True, config=plotly_config)
         with g2:
-            # AJUSTE ESPECÍFICO DE ALINHAMENTO DO TÍTULO "Potencial Gravitacional"
             st.subheader("Potencial Gravitacional")
             fig_gauge = go.Figure(go.Indicator(mode="gauge+number", value=p_data['Gravidade'],
                                              gauge={'axis':{'range':[None, 30]}, 'bar':{'color':"#ffdd00"}}))
-            fig_gauge.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', 
-                font={'color':"#c9e4ff"}, 
-                height=350,
-                margin=dict(t=50, b=10, l=30, r=30) # Adicionado margem para alinhar o conteúdo ao subheader
-            )
+            fig_gauge.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350)
             st.plotly_chart(fig_gauge, use_container_width=True, config=plotly_config)
     except IndexError:
         st.error("Erro ao carregar dados. Regresse ao Sistema Completo.")
