@@ -5,13 +5,13 @@ import plotly.graph_objects as go
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
-    page_title="Data Solar",
+    page_title="Data Solar | BrunoJS Dev",
     page_icon="🪐",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILO CSS AVANÇADO ---
+# --- ESTILO CSS AVANÇADO (CORREÇÃO DE BOTÕES E FILTROS) ---
 st.markdown("""
 <style>
     /* Reset e Fundo */
@@ -47,22 +47,13 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
 
-    /* FIX: NAVEGAÇÃO HORIZONTAL SEM SOBREPOSIÇÃO */
-    div[data-testid="stHorizontalBlock"]:has(button) {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        justify-content: flex-start !important;
-        gap: 10px !important;
-        overflow-x: auto;
+    /* FORÇAR ALINHAMENTO HORIZONTAL DOS BOTÕES */
+    .stElementContainer:has(div.stButton) {
+        display: inline-block;
+        width: auto !important;
+        margin-right: 10px !important;
     }
     
-    div[data-testid="stColumn"]:has(button) {
-        width: auto !important;
-        min-width: fit-content !important;
-        flex: 0 0 auto !important;
-    }
-
     .stButton > button {
         background-color: #090024;
         color: #c9e4ff;
@@ -79,9 +70,9 @@ st.markdown("""
         color: #ffdd00;
     }
 
-    /* AJUSTE DO MULTISELECT */
+    /* AJUSTE DO MULTISELECT PARA NÃO QUEBRAR LINHA CEDO */
     .stMultiSelect div[data-baseweb="select"] {
-        min-width: 400px !important;
+        min-width: 350px;
     }
     
     .planeta-desc {
@@ -93,6 +84,7 @@ st.markdown("""
         font-style: italic;
     }
     
+    /* REMOVER ESPAÇAMENTO EXCESSIVO DOS KPIS */
     [data-testid="stMetricValue"] {
         font-size: 1.8rem !important;
     }
@@ -114,31 +106,39 @@ def get_data():
     return pd.DataFrame(data)
 
 df_original = get_data()
+# Apenas planetas para a visão geral
 df_planetas_apenas = df_original[df_original['Tipo'] != 'Estrela']
 
 # --- HEADER ---
 st.markdown(f'<a href="https://brunojsdev.github.io/meu-portfolio/" class="portfolio-btn">Portfolio</a>', unsafe_allow_html=True)
 st.title("SISTEMA SOLAR | DATA INSIGHTS")
 
-# --- NAVEGAÇÃO ---
+# --- NAVEGAÇÃO REFEITA (SEM COLUNAS RÍGIDAS) ---
+# Criamos um container para os botões ficarem lado a lado organicamente
 botoes_nomes = ["SISTEMA COMPLETO", "SOL", "MERCÚRIO", "VÊNUS", "TERRA", "MARTE", "JÚPITER", "SATURNO", "URANO", "NETUNO"]
 
 if 'selecao' not in st.session_state:
     st.session_state.selecao = "Geral"
 
-cols = st.columns(len(botoes_nomes))
-for idx, nome in enumerate(botoes_nomes):
-    with cols[idx]:
-        if st.button(nome, key=f"btn_{nome}"):
-            st.session_state.selecao = "Geral" if nome == "SISTEMA COMPLETO" else nome.title()
+# Container de botões
+nav_cont = st.container()
+with nav_cont:
+    cols = st.columns(len(botoes_nomes))
+    for idx, nome in enumerate(botoes_nomes):
+        with cols[idx]:
+            if st.button(nome, key=f"btn_{nome}"):
+                st.session_state.selecao = "Geral" if nome == "SISTEMA COMPLETO" else nome.title()
 
 st.markdown("---")
 
+# Configuração global para gráficos
 plotly_config = {'displayModeBar': False}
 
 # --- LÓGICA DE EXIBIÇÃO ---
 if st.session_state.selecao == "Geral":
-    col_f1, _ = st.columns([4, 6]) 
+    
+    # Aumentei a proporção para 3.5 para caberem os 3 filtros lado a lado
+    col_f1, _ = st.columns([3.5, 6.5]) 
     with col_f1:
         tipos_disponiveis = df_planetas_apenas['Tipo'].unique()
         filtro_tipo = st.multiselect(
@@ -150,6 +150,7 @@ if st.session_state.selecao == "Geral":
     df_filtered = df_planetas_apenas[df_planetas_apenas['Tipo'].isin(filtro_tipo)]
     st.write("")
 
+    # KPIs com larguras ajustadas para não cortar valores
     c1, c2, c3, c4, _ = st.columns([1.2, 2.2, 1.5, 1.2, 2])
     c1.metric("Planetas", len(df_filtered))
     c2.metric("Média de Gravidade", f"{df_filtered['Gravidade'].mean():.2f} m/s²")
@@ -182,6 +183,7 @@ if st.session_state.selecao == "Geral":
     st.plotly_chart(fig_grav, use_container_width=True, config=plotly_config)
 
 elif st.session_state.selecao == "Sol":
+    # CORREÇÃO DO BUG: Busca no df_original, não no df_planetas
     p_data = df_original[df_original['Planeta'] == 'Sol'].iloc[0]
     st.header(f"Exploração: {p_data['Planeta'].upper()}")
     
@@ -201,14 +203,14 @@ elif st.session_state.selecao == "Sol":
         fig_t.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350)
         st.plotly_chart(fig_t, use_container_width=True, config=plotly_config)
     with g2:
-        # Título específico alinhado ao gráfico
-        st.subheader("Potencial Gravitacional")
+        st.subheader("Gravidade Solar (Extrema)")
         fig_g = go.Figure(go.Indicator(mode="gauge+number", value=p_data['Gravidade'],
                                      gauge={'axis':{'range':[None, 300]}, 'bar':{'color':"#ffdd00"}}))
-        fig_g.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350, margin=dict(t=50, b=10, l=30, r=30))
+        fig_g.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350)
         st.plotly_chart(fig_g, use_container_width=True, config=plotly_config)
 
 else:
+    # VISÃO DETALHADA DOS PLANETAS
     target = st.session_state.selecao
     try:
         p_data = df_planetas_apenas[df_planetas_apenas['Planeta'] == target].iloc[0]
@@ -232,19 +234,13 @@ else:
             fig_comp.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', height=350, dragmode='pan')
             st.plotly_chart(fig_comp, use_container_width=True, config=plotly_config)
         with g2:
-            # AJUSTE ESPECÍFICO DE ALINHAMENTO DO TÍTULO "Potencial Gravitacional"
             st.subheader("Potencial Gravitacional")
             fig_gauge = go.Figure(go.Indicator(mode="gauge+number", value=p_data['Gravidade'],
                                              gauge={'axis':{'range':[None, 30]}, 'bar':{'color':"#ffdd00"}}))
-            fig_gauge.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', 
-                font={'color':"#c9e4ff"}, 
-                height=350,
-                margin=dict(t=50, b=10, l=30, r=30) # Adicionado margem para alinhar o conteúdo ao subheader
-            )
+            fig_gauge.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350)
             st.plotly_chart(fig_gauge, use_container_width=True, config=plotly_config)
     except IndexError:
-        st.error("Erro ao carregar dados. Regresse ao Sistema Completo.")
+        st.error("Erro ao carregar dados do corpo celeste selecionado. Por favor, regresse ao Sistema Completo.")
 
 st.markdown("---")
 st.caption("Business Intelligence | BrunoJS Dev | Dados Astronômicos Referenciais")
