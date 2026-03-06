@@ -205,7 +205,7 @@ elif st.session_state.selecao == "Sol":
         st.subheader("Potencial Gravitacional")
         fig_g = go.Figure(go.Indicator(mode="gauge+number", value=p_data['Gravidade'],
                                      gauge={'axis':{'range':[None, 300]}, 'bar':{'color':"#ffdd00"}}))
-        fig_g.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350, margin=dict(t=50, b=10, l=30, r=30))
+        fig_g.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350)
         st.plotly_chart(fig_g, use_container_width=True, config=plotly_config)
 
 else:
