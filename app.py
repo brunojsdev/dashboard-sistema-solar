@@ -3,24 +3,24 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# --- PALETA DE CORES PERSONALIZADA ---
+# --- PALETA DE CORES PERSONALIZADA (VIBRANTE / NEON / ARCO-ÍRIS) ---
 COR_PLANETAS = {
-    'Sol': '#FFD700',       # Amarelo/Dourado para o Sol
-    'Mercúrio': '#8C8C8C',
-    'Vênus': '#E89AB0',
-    'Terra': '#0AC269',
-    'Marte': '#E63946',
-    'Júpiter': '#C65D2E',
-    'Saturno': '#EAD7A1',
-    'Urano': '#76EEC6',
-    'Netuno': '#2A4B9B'
+    'Sol': '#FFF100',       # Amarelo super brilhante
+    'Mercúrio': '#FF4D00',  # Laranja/Vermelho vívido
+    'Vênus': '#FF00E6',     # Rosa Neon / Magenta
+    'Terra': '#00FF87',     # Verde Menta / Neon Green
+    'Marte': '#FF003C',     # Vermelho Neon
+    'Júpiter': '#FF8C00',   # Laranja Vibrante
+    'Saturno': '#FFE600',   # Dourado Brilhante
+    'Urano': '#00E5FF',     # Ciano Neon / Azul Elétrico
+    'Netuno': '#651FFF'     # Roxo Elétrico / Índigo
 }
 
 COR_TIPOS = {
-    'Rochoso': '#8B5E3C',
-    'Gasoso': '#D9FFF2',
-    'Gelo': '#6EC5E9',
-    'Estrela': '#FFD700'
+    'Rochoso': '#FF3366',   # Coral/Rosa Vibrante
+    'Gasoso': '#CCFF00',    # Verde Limão Elétrico
+    'Gelo': '#00BFFF',      # Azul Celeste Brilhante
+    'Estrela': '#FFF100'    # Amarelo Brilhante
 }
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
