@@ -138,7 +138,7 @@ df_planetas_apenas = df_original[df_original['Tipo'] != 'Estrela']
 
 # --- HEADER ---
 st.markdown(f'<a href="https://brunojsdev.github.io/meu-portfolio/" class="portfolio-btn">Portfolio</a>', unsafe_allow_html=True)
-st.title("SISTEMA SOLAR | DATA INSIGHTS")
+st.title("DASHBOARD SISTEMA SOLAR")
 
 # --- NAVEGAÇÃO ---
 botoes_nomes = ["SISTEMA COMPLETO", "SOL", "MERCÚRIO", "VÊNUS", "TERRA", "MARTE", "JÚPITER", "SATURNO", "URANO", "NETUNO"]
