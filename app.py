@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="Data Solar",
-    page_icon="🪐",
+    page_icon="fi-port.png",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
