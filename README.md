@@ -1,70 +1,38 @@
 # 🪐 Painel Analítico do Sistema Solar
 
-Este é um dashboard profissional desenvolvido em Python para a visualização e análise de dados quantitativos dos planetas do nosso sistema solar. O projeto utiliza visualizações interativas para correlacionar variáveis físicas e orbitais, oferecendo uma interface intuitiva para exploração científica.
+Este projeto consiste em um dashboard de Business Intelligence (BI) focado na análise quantitativa e visualização de dados astronômicos. A aplicação processa variáveis físicas e orbitais dos corpos celestes, oferecendo uma interface técnica para exploração científica de alta performance.
 
----
-
-## 🚀 Demonstração
-O projeto está configurado para deploy imediato no **Streamlit Cloud**. 
-Acesse o meu portfólio para ver este e outros projetos: [brunojsdev.github.io/meu-portfolio/](https://brunojsdev.github.io/meu-portfolio/)
-
----
-
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Stack Tecnológica
 
 * **Linguagem:** Python 3.x
-* **Interface Web:** [Streamlit](https://streamlit.io/)
-* **Visualização de Dados:** [Plotly Express](https://plotly.com/python/)
+* **Framework Web:** [Streamlit](https://streamlit.io/)
 * **Manipulação de Dados:** [Pandas](https://pandas.pydata.org/)
-* **Estilização:** CSS3 e HTML5
+* **Visualização:** [Plotly Express](https://plotly.com/python/) & Graph Objects
+* **Estilização:** CSS3 Customizado para interface de alto contraste
 
----
+## 📊 Funcionalidades Principais
 
-## 📊 Funcionalidades
+* **Navegação Modular:** Sistema de filtragem lateral para alternância entre tipos de planetas (Rochosos, Gasosos e Gelo).
+* **Indicadores de Performance (KPIs):** Visualização em tempo real de gravidade média, diâmetro equatorial e contagem de satélites.
+* **Análises Gráficas:**
+    * Comparativo de escalas entre planetas e o Sol.
+    * Gráficos de dispersão correlacionando temperatura e distância orbital.
+    * Medidores (Gauges) de potencial gravitacional com escalas normalizadas.
+* **UX Otimizada:** Implementação de modo de interação *Pan* nos gráficos para navegação precisa sem distorções de zoom.
 
-* **Filtros Rápidos:** Navegação lateral fixa para alternar entre tipos de planetas (Rochosos, Gasosos ou Gelados).
-* **Gráfico de Dispersão Dinâmico:** Correlação entre Gravidade, Temperatura e Diâmetro.
-* **Análise por Abas:**
-    * **Distância:** Comparativo de proximidade com o Sol.
-    * **Rotação:** Duração do dia em cada corpo celeste.
-    * **Escala:** Diâmetro equatorial comparado.
-    * **Satélites:** Ranking de quantidade de luas.
-* **Modo de Interação Pan:** Gráficos configurados por padrão para movimentação lateral, evitando distorções de zoom.
-* **Base de Dados:** Tabela técnica detalhada com suporte a ordenação e busca.
+## ⚙️ Configuração e Execução
 
----
-
-## 📁 Estrutura do Repositório
-
-Para o correto funcionamento do deploy e do Favicon, o repositório deve estar organizado da seguinte forma:
-
-```text
-├── app.py              # Código fonte da aplicação
-├── requirements.txt    # Dependências do projeto
-└── fi-port.png         # Ícone personalizado (Favicon)
-```
-## ⚙️ Como executar localmente
-
-Siga os passos abaixo para rodar o projeto na sua máquina:
-
-1. **Clone o repositório:**
-   ```bash
-   git clone [https://github.com/brunojsdev/dashboard-sistema-solar.git](https://github.com/brunojsdev/dashboard-sistema-solar.git)
-´´´
-
-2. **Aceda à pasta do projeto:**
-   ```bash
-   cd dashboard-sistema-solar
-´´´
-
-3. **Instale as dependências:**
+1. **Instalação de Dependências:**
    ```bash
    pip install -r requirements.txt
-´´´
-
-4. **Execute o aplicativo:**
+   ```
+2. Execução da Aplicação:
    ```bash
    streamlit run app.py
-´´´
+   ```
+## 📁 Estrutura de Arquivos
 
-
+* `app.py`: Lógica principal e interface do dashboard.
+* `requirements.txt`: Lista de bibliotecas necessárias.
+* `fi-port.png`: Favicon e identidade visual.
+* `.streamlit/config.toml`: Configurações de tema.
