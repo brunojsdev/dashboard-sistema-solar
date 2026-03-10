@@ -137,7 +137,7 @@ df_original = get_data()
 df_planetas_apenas = df_original[df_original['Tipo'] != 'Estrela']
 
 # --- HEADER ---
-st.markdown(f'<a href="https://brunojsdev.github.io/meu-portfolio/#projects" class="portfolio-btn">Portfolio</a>', unsafe_allow_html=True)
+st.markdown(f'<a href="https://brunojsdev.github.io/meu-portfolio/#projects" target="_self" class="portfolio-btn">Portfolio</a>', unsafe_allow_html=True)
 st.title("DASHBOARD SISTEMA SOLAR")
 
 # --- NAVEGAÇÃO ---
