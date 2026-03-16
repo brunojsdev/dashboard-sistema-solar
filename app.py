@@ -137,7 +137,12 @@ df_original = get_data()
 df_planetas_apenas = df_original[df_original['Tipo'] != 'Estrela']
 
 # --- HEADER ---
-st.markdown(f'<a href="https://brunojsdev.github.io/meu-portfolio/#projects" class="portfolio-btn">Portfolio</a>', unsafe_allow_html=True)
+# Botão adaptado para fechar a aba ou voltar para a Vercel
+st.markdown(
+    f'<a href="https://brunojsilveira.vercel.app/" onclick="window.close();" class="portfolio-btn" target="_self">Voltar ao Portfólio</a>', 
+    unsafe_allow_html=True
+)
+
 st.title("DASHBOARD SISTEMA SOLAR")
 
 # --- NAVEGAÇÃO ---
