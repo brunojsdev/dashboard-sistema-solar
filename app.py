@@ -39,29 +39,7 @@ st.markdown("""
         background-color: #040014;
         color: #c9e4ff;
     }
-    
-    /* Botão Portfolio */
-    .portfolio-btn {
-        position: absolute;
-        top: -50px;
-        left: 0;
-        color: #5752ff;
-        text-decoration: none !important;
-        font-weight: 600;
-        border: 1px solid #5752ff;
-        padding: 5px 20px;
-        border-radius: 4px;
-        transition: 0.3s;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        letter-spacing: 1px;
-    }
-    .portfolio-btn:hover {
-        background-color: #5752ff;
-        color: white !important;
-        box-shadow: 0px 0px 15px rgba(87, 82, 255, 0.4);
-    }
-
+   
     h1, h2, h3 {
         color: #ffdd00 !important;
         font-family: 'Inter', sans-serif;
@@ -137,10 +115,6 @@ df_original = get_data()
 df_planetas_apenas = df_original[df_original['Tipo'] != 'Estrela']
 
 # --- HEADER ---
-import streamlit as st
-# Botão adaptado para fechar a aba ou voltar para a Vercel
-st.markdown('<a href="javascript:void(0)" onclick="window.open(\'\', \'_self\').close();" class="portfolio-btn">Voltar ao Portfolio</a>', unsafe_allow_html=True)
-
 st.title("DASHBOARD SISTEMA SOLAR")
 
 # --- NAVEGAÇÃO ---
