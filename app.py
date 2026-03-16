@@ -137,9 +137,45 @@ df_original = get_data()
 df_planetas_apenas = df_original[df_original['Tipo'] != 'Estrela']
 
 # --- HEADER ---
-# Botão adaptado para fechar a aba ou voltar para a Vercel
+import streamlit as st
+
+# O botão com o "Truque" para Streamlit
 st.markdown(
-    f'<a href="https://brunojsilveira.vercel.app/" onclick="window.close();" class="portfolio-btn" target="_self">Voltar ao Portfólio</a>', 
+    """
+    <script>
+    function voltarPortfolio() {
+        // Tenta fechar a aba
+        window.open('', '_self', ''); 
+        if (!window.close()) {
+            // Se não fechar, redireciona substituindo o histórico para não bugar
+            window.top.location.replace("https://brunojsilveira.vercel.app/");
+        }
+    }
+    </script>
+    
+    <a href="javascript:void(0)" onclick="voltarPortfolio()" class="portfolio-btn">
+        <span>←</span> Voltar ao Portfólio
+    </a>
+    
+    <style>
+    .portfolio-btn {
+        text-decoration: none;
+        color: #ffdd00 !important;
+        font-weight: bold;
+        border: 1px solid #ffdd00;
+        padding: 8px 16px;
+        border-radius: 12px;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .portfolio-btn:hover {
+        background-color: rgba(255, 221, 0, 0.1);
+        transform: translateX(-5px);
+    }
+    </style>
+    """,
     unsafe_allow_html=True
 )
 
