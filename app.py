@@ -34,65 +34,95 @@ st.set_page_config(
 # --- ESTILO CSS AVANÇADO ---
 st.markdown("""
 <style>
-    /* Reset e Fundo */
+    /* Reset e Fundo Base */
     .stApp {
         background-color: #040014;
         color: #c9e4ff;
     }
-   
+
+    /* Botão Portfolio - Ajuste de Posicionamento */
+    .portfolio-btn {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #5752ff;
+        text-decoration: none !important;
+        font-weight: 600;
+        border: 1px solid #5752ff;
+        padding: 8px 15px;
+        border-radius: 4px;
+        transition: 0.3s;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+    }
+    .portfolio-btn:hover {
+        background-color: #5752ff;
+        color: white !important;
+        box-shadow: 0px 0px 15px rgba(87, 82, 255, 0.4);
+    }
+
+    /* Títulos Neon */
     h1, h2, h3 {
         color: #ffdd00 !important;
         font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 2px;
     }
 
-    /* FIX: NAVEGAÇÃO HORIZONTAL SEM SOBREPOSIÇÃO */
+    /* NAVEGAÇÃO MOBILE (Scroll Horizontal Suave) */
     div[data-testid="stHorizontalBlock"]:has(button) {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        justify-content: flex-start !important;
-        gap: 10px !important;
-        overflow-x: auto;
+        gap: 8px !important;
+        overflow-x: auto !important;
+        padding: 10px 0 !important;
+        scrollbar-width: none; /* Esconde scroll no Firefox */
     }
-    
-    div[data-testid="stColumn"]:has(button) {
-        width: auto !important;
-        min-width: fit-content !important;
-        flex: 0 0 auto !important;
+    div[data-testid="stHorizontalBlock"]::-webkit-scrollbar {
+        display: none; /* Esconde scroll no Chrome/Safari */
     }
 
+    /* Estilização dos Botões de Navegação */
     .stButton > button {
         background-color: #090024;
         color: #c9e4ff;
         border: 1px solid #150136;
-        border-radius: 4px;
+        border-radius: 2px;
         font-weight: 600;
-        padding: 0.5rem 1rem;
-        width: auto !important;
-        white-space: nowrap;
+        padding: 0.4rem 0.8rem;
+        transition: 0.2s;
     }
 
-    .stButton > button:hover {
-        border-color: #ffdd00;
-        color: #ffdd00;
+    /* AJUSTES ESPECÍFICOS PARA MOBILE (Telas < 768px) */
+    @media (max-width: 768px) {
+        h1 { font-size: 1.6rem !important; }
+        
+        /* Forçar métricas a ficarem menores para caberem lado a lado */
+        [data-testid="stMetricValue"] {
+            font-size: 1.3rem !important;
+        }
+        [data-testid="stMetricLabel"] {
+            font-size: 0.8rem !important;
+        }
+
+        /* Ajuste do Multiselect para não quebrar o layout */
+        .stMultiSelect div[data-baseweb="select"] {
+            min-width: 100% !important;
+        }
+
+        /* Padding lateral para evitar elementos colados na borda */
+        .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
     }
 
-    /* AJUSTE DO MULTISELECT */
-    .stMultiSelect div[data-baseweb="select"] {
-        min-width: 400px !important;
-    }
-    
+    /* Cards de Informação (Efeito Cyberpunk) */
     .planeta-desc {
-        font-size: 1.2rem;
+        font-size: 1rem;
         color: #c9e4ff;
-        margin-bottom: 25px;
-        border-left: 3px solid #5752ff;
-        padding-left: 15px;
-        font-style: italic;
-    }
-    
-    [data-testid="stMetricValue"] {
-        font-size: 1.8rem !important;
+        margin-bottom: 20px;
+        border-left: 2px solid #ffdd00;
+        padding: 10px 15px;
+        background: rgba(21, 1, 54, 0.5);
     }
 </style>
 """, unsafe_allow_html=True)
