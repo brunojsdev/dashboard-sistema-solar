@@ -1,9 +1,26 @@
+"""
+  ==========================================================================
+  ÍNDICE DO ARQUIVO (Python - Streamlit)
+  1. CONFIGURAÇÕES E IMPORTAÇÕES
+  2. PALETA DE CORES E DESIGN TOKENS
+  3. ESTILIZAÇÃO CUSTOMIZADA (CSS Avançado)
+  4. GESTÃO DE DADOS (Database & Cache)
+  5. HEADER E SISTEMA DE NAVEGAÇÃO
+  6. LÓGICA DE EXIBIÇÃO: SISTEMA COMPLETO (Visão Geral)
+  7. LÓGICA DE EXIBIÇÃO: O SOL (Estrela Central)
+  8. LÓGICA DE EXIBIÇÃO: PLANETAS INDIVIDUAIS
+  9. RODAPÉ INFORMATIVO
+  ==========================================================================
+"""
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# --- PALETA DE CORES PERSONALIZADA (VIBRANTE / NEON / ARCO-ÍRIS) ---
+# ==========================================================================
+# 2. PALETA DE CORES E DESIGN TOKENS
+# ==========================================================================
 COR_PLANETAS = {
     'Sol': '#FFF100',       # Amarelo super brilhante
     'Mercúrio': '#FF4D00',  # Laranja/Vermelho vívido
@@ -23,7 +40,9 @@ COR_TIPOS = {
     'Estrela': '#FFF100'    # Amarelo Brilhante
 }
 
-# --- CONFIGURAÇÃO DA PÁGINA ---
+# ==========================================================================
+# 3. CONFIGURAÇÃO DA PÁGINA E ESTILO CSS
+# ==========================================================================
 st.set_page_config(
     page_title="Data Solar",
     page_icon="fi-port.png",
@@ -31,28 +50,28 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ESTILO CSS AVANÇADO ---
 st.markdown("""
 <style>
-    /* Reset e Fundo Base */
+    /* Reset e Fundo */
     .stApp {
         background-color: #040014;
         color: #c9e4ff;
     }
-
-    /* Botão Portfolio - Ajuste de Posicionamento */
+    
+    /* Botão Portfolio */
     .portfolio-btn {
-        display: inline-block;
-        margin-bottom: 20px;
+        position: absolute;
+        top: -50px;
+        left: 0;
         color: #5752ff;
         text-decoration: none !important;
         font-weight: 600;
         border: 1px solid #5752ff;
-        padding: 8px 15px;
+        padding: 5px 20px;
         border-radius: 4px;
         transition: 0.3s;
         text-transform: uppercase;
-        font-size: 0.7rem;
+        font-size: 0.8rem;
         letter-spacing: 1px;
     }
     .portfolio-btn:hover {
@@ -61,73 +80,66 @@ st.markdown("""
         box-shadow: 0px 0px 15px rgba(87, 82, 255, 0.4);
     }
 
-    /* Títulos Neon */
     h1, h2, h3 {
         color: #ffdd00 !important;
         font-family: 'Inter', sans-serif;
-        text-transform: uppercase;
-        letter-spacing: 2px;
     }
 
-    /* NAVEGAÇÃO MOBILE (Scroll Horizontal Suave) */
+    /* FIX: NAVEGAÇÃO HORIZONTAL SEM SOBREPOSIÇÃO */
     div[data-testid="stHorizontalBlock"]:has(button) {
-        gap: 8px !important;
-        overflow-x: auto !important;
-        padding: 10px 0 !important;
-        scrollbar-width: none; /* Esconde scroll no Firefox */
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        overflow-x: auto;
     }
-    div[data-testid="stHorizontalBlock"]::-webkit-scrollbar {
-        display: none; /* Esconde scroll no Chrome/Safari */
+    
+    div[data-testid="stColumn"]:has(button) {
+        width: auto !important;
+        min-width: fit-content !important;
+        flex: 0 0 auto !important;
     }
 
-    /* Estilização dos Botões de Navegação */
     .stButton > button {
         background-color: #090024;
         color: #c9e4ff;
         border: 1px solid #150136;
-        border-radius: 2px;
+        border-radius: 4px;
         font-weight: 600;
-        padding: 0.4rem 0.8rem;
-        transition: 0.2s;
+        padding: 0.5rem 1rem;
+        width: auto !important;
+        white-space: nowrap;
     }
 
-    /* AJUSTES ESPECÍFICOS PARA MOBILE (Telas < 768px) */
-    @media (max-width: 768px) {
-        h1 { font-size: 1.6rem !important; }
-        
-        /* Forçar métricas a ficarem menores para caberem lado a lado */
-        [data-testid="stMetricValue"] {
-            font-size: 1.3rem !important;
-        }
-        [data-testid="stMetricLabel"] {
-            font-size: 0.8rem !important;
-        }
-
-        /* Ajuste do Multiselect para não quebrar o layout */
-        .stMultiSelect div[data-baseweb="select"] {
-            min-width: 100% !important;
-        }
-
-        /* Padding lateral para evitar elementos colados na borda */
-        .block-container {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-        }
+    .stButton > button:hover {
+        border-color: #ffdd00;
+        color: #ffdd00;
     }
 
-    /* Cards de Informação (Efeito Cyberpunk) */
+    /* AJUSTE DO MULTISELECT */
+    .stMultiSelect div[data-baseweb="select"] {
+        min-width: 400px !important;
+    }
+    
     .planeta-desc {
-        font-size: 1rem;
+        font-size: 1.2rem;
         color: #c9e4ff;
-        margin-bottom: 20px;
-        border-left: 2px solid #ffdd00;
-        padding: 10px 15px;
-        background: rgba(21, 1, 54, 0.5);
+        margin-bottom: 25px;
+        border-left: 3px solid #5752ff;
+        padding-left: 15px;
+        font-style: italic;
+    }
+    
+    [data-testid="stMetricValue"] {
+        font-size: 1.8rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- DATABASE ---
+# ==========================================================================
+# 4. GESTÃO DE DADOS (Database)
+# ==========================================================================
 @st.cache_data
 def get_data():
     data = {
@@ -144,10 +156,12 @@ def get_data():
 df_original = get_data()
 df_planetas_apenas = df_original[df_original['Tipo'] != 'Estrela']
 
-# --- HEADER ---
+# ==========================================================================
+# 5. HEADER E SISTEMA DE NAVEGAÇÃO
+# ==========================================================================
+st.markdown('<a href="https://brunojsdev.github.io/meu-portfolio/" class="portfolio-btn">Portfolio</a>', unsafe_allow_html=True)
 st.title("DASHBOARD SISTEMA SOLAR")
 
-# --- NAVEGAÇÃO ---
 botoes_nomes = ["SISTEMA COMPLETO", "SOL", "MERCÚRIO", "VÊNUS", "TERRA", "MARTE", "JÚPITER", "SATURNO", "URANO", "NETUNO"]
 
 if 'selecao' not in st.session_state:
@@ -163,7 +177,9 @@ st.markdown("---")
 
 plotly_config = {'displayModeBar': False}
 
-# --- LÓGICA DE EXIBIÇÃO ---
+# ==========================================================================
+# 6. LÓGICA DE EXIBIÇÃO: SISTEMA COMPLETO
+# ==========================================================================
 if st.session_state.selecao == "Geral":
     col_f1, _ = st.columns([4, 6]) 
     with col_f1:
@@ -177,9 +193,12 @@ if st.session_state.selecao == "Geral":
     df_filtered = df_planetas_apenas[df_planetas_apenas['Tipo'].isin(filtro_tipo)]
     st.write("")
 
+    # Cálculo seguro da média para evitar erro com filtros vazios
+    media_gravidade = df_filtered['Gravidade'].mean() if not df_filtered.empty else 0
+
     c1, c2, c3, c4, _ = st.columns([1.2, 2.2, 1.5, 1.2, 2])
     c1.metric("Planetas", len(df_filtered))
-    c2.metric("Média de Gravidade", f"{df_filtered['Gravidade'].mean():.2f} m/s²")
+    c2.metric("Média de Gravidade", f"{media_gravidade:.2f} m/s²")
     c3.metric("Total de Luas", df_filtered['Luas'].sum())
     c4.metric("Escopo", "Completo")
 
@@ -212,6 +231,9 @@ if st.session_state.selecao == "Geral":
     fig_grav.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#c9e4ff', dragmode='pan')
     st.plotly_chart(fig_grav, use_container_width=True, config=plotly_config)
 
+# ==========================================================================
+# 7. LÓGICA DE EXIBIÇÃO: O SOL
+# ==========================================================================
 elif st.session_state.selecao == "Sol":
     p_data = df_original[df_original['Planeta'] == 'Sol'].iloc[0]
     st.header(f"Exploração: {p_data['Planeta'].upper()}")
@@ -238,13 +260,16 @@ elif st.session_state.selecao == "Sol":
         fig_g.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color':"#c9e4ff"}, height=350)
         st.plotly_chart(fig_g, use_container_width=True, config=plotly_config)
 
+# ==========================================================================
+# 8. LÓGICA DE EXIBIÇÃO: PLANETAS INDIVIDUAIS
+# ==========================================================================
 else:
     target = st.session_state.selecao
     try:
         p_data = df_planetas_apenas[df_planetas_apenas['Planeta'] == target].iloc[0]
         st.header(f"Exploração: {target.upper()}")
         
-        comparativo = "superior" if p_data['Gravidade'] > 9.8 else "inferior"
+        comparativo = "superior" if p_data['Gravidade'] >= 9.8 else "inferior"
         st.markdown(f'<div class="planeta-desc">Planeta {p_data["Tipo"]} com gravidade {comparativo} à da Terra.</div>', unsafe_allow_html=True)
         
         m1, m2, m3, m4, _ = st.columns([1, 1, 1, 1, 3])
@@ -273,5 +298,8 @@ else:
     except IndexError:
         st.error("Erro ao carregar dados. Regresse ao Sistema Completo.")
 
+# ==========================================================================
+# 9. RODAPÉ INFORMATIVO
+# ==========================================================================
 st.markdown("---")
 st.caption("Business Intelligence | BrunoJS Dev | Dados Astronômicos Referenciais")
